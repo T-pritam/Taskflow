@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Loader2, Lock, Trash2, X } from "lucide-react";
+import { Download, Loader2, Lock, Paperclip, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/store/authStore";
+import { useAttachments } from "@/hooks/useAttachments";
 import { fromDateInputValue, toDateInputValue } from "@/lib/date";
 import {
   canEditAllFields,
@@ -56,7 +57,12 @@ export default function TaskForm({
   const [restrictedToRole, setRestrictedToRole] = useState(toNone(task?.restricted_to_role));
   const [labelIds, setLabelIds] = useState(task?.labels?.map((l) => l.id) ?? []);
 
+  const [pendingFiles, setPendingFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const { attachments, upload, remove, getSignedUrl } = useAttachments(task?.id);
+
+  const canEditFiles = canEditAll;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -77,12 +83,55 @@ export default function TaskForm({
         };
 
     try {
-      await onSubmit(fields, locked ? undefined : labelIds);
+      const saved = await onSubmit(fields, locked ? undefined : labelIds);
+
+      if (!isEdit && pendingFiles.length > 0 && saved?.id) {
+        for (const file of pendingFiles) {
+          await upload(file, saved.id);
+        }
+      }
+      setPendingFiles([]);
       onSaved?.();
     } catch (error) {
       toast.error(error.message);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleUploadNow(file) {
+    try {
+      await upload(file);
+      toast.success(`Uploaded ${file.name}`);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  function handleFilesPicked(e) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
+
+    if (isEdit) files.forEach(handleUploadNow);
+    else setPendingFiles((prev) => [...prev, ...files]);
+  }
+
+  async function handleDownload(attachment) {
+    try {
+      const url = await getSignedUrl(attachment.file_path);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function handleRemoveAttachment(attachment) {
+    try {
+      await remove(attachment);
+      toast.success("Attachment removed");
+    } catch (error) {
+      toast.error(error.message);
     }
   }
 
@@ -246,6 +295,67 @@ export default function TaskForm({
           onCreate={onCreateLabel}
           disabled={locked}
         />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="files">Attachments</Label>
+        {canEditFiles && (
+          <Input id="files" type="file" multiple onChange={handleFilesPicked} />
+        )}
+
+        {pendingFiles.length > 0 && (
+          <ul className="text-muted-foreground flex flex-col gap-1 text-sm">
+            {pendingFiles.map((file, i) => (
+              <li key={`${file.name}-${i}`} className="flex items-center gap-2">
+                <Paperclip className="size-3.5" />
+                <span className="truncate">{file.name}</span>
+                <span className="text-xs">(uploads on save)</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {attachments.length > 0 && (
+          <ul className="flex flex-col gap-1">
+            {attachments.map((a) => (
+              <li
+                key={a.id}
+                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Paperclip className="size-3.5 shrink-0" />
+                  <span className="truncate">{a.file_name}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDownload(a)}
+                    aria-label={`Download ${a.file_name}`}
+                  >
+                    <Download className="size-4" />
+                  </Button>
+                  {canEditFiles && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveAttachment(a)}
+                      aria-label={`Remove ${a.file_name}`}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!canEditFiles && attachments.length === 0 && (
+          <p className="text-muted-foreground text-sm">No attachments.</p>
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-2 pt-2">

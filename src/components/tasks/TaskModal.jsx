@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { useAuth } from "@/store/authStore";
+import { useComments } from "@/hooks/useComments";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import CommentBox from "@/components/comments/CommentBox";
+import CommentList from "@/components/comments/CommentList";
 import TaskForm from "./TaskForm";
 
 export default function TaskModal({
@@ -23,6 +26,7 @@ export default function TaskModal({
 }) {
   const { profile, isAdmin } = useAuth();
   const isEdit = Boolean(task);
+  const { comments, loading: commentsLoading, addComment } = useComments(task?.id);
 
   const canDelete = isEdit && (isAdmin || task.created_by === profile?.id);
 
@@ -53,7 +57,9 @@ export default function TaskModal({
         <DialogHeader className="pr-10">
           <DialogTitle>{isEdit ? "Task details" : "New task"}</DialogTitle>
           <DialogDescription>
-            {isEdit ? "Update the task details below." : "Add a task to the board."}
+            {isEdit
+              ? "Update the task, or leave a comment for the people following it."
+              : "Add a task to the board."}
           </DialogDescription>
         </DialogHeader>
 
@@ -69,6 +75,14 @@ export default function TaskModal({
             onDelete={canDelete ? handleDelete : undefined}
             onCancel={() => onOpenChange(false)}
           />
+
+          {isEdit && (
+            <div className="flex flex-col gap-4 border-t pt-4">
+              <h3 className="text-sm font-medium">Comments</h3>
+              <CommentList comments={comments} loading={commentsLoading} />
+              <CommentBox members={members} onSubmit={addComment} />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
