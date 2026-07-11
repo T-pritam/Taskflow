@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import ProtectedRoute from "@/routes/ProtectedRoute";
+import Shell from "@/components/layout/Shell";
 import LoginPage from "@/components/auth/LoginPage";
 import SignupPage from "@/components/auth/SignupPage";
 import ForgotPasswordPage from "@/components/auth/ForgotPasswordPage";
@@ -26,7 +27,7 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute>
-              
+              <Shell />
             </ProtectedRoute>
           }
         >

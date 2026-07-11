@@ -11,8 +11,7 @@ export function FullPageSpinner() {
 }
 
 export default function ProtectedRoute({ children }) {
-  const { session, loading } = useAuth();
-  console.log("ProtectedRoute session:", session);
+  const { session, role, loading } = useAuth();
 
   if (loading) return <FullPageSpinner />;
   if (!session) return <Navigate to="/login" replace />;
