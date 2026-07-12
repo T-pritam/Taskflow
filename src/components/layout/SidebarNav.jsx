@@ -78,6 +78,11 @@ export default function SidebarNav({ sections, createSection, onNavigate }) {
           </form>
         )}
 
+        <NavLink to="/" active={onBoard && !activeSection} onNavigate={onNavigate}>
+          <span className="bg-muted-foreground/40 size-1.5 rounded-full" />
+          <span className="truncate">All tasks</span>
+        </NavLink>
+
         {sections.length === 0 && !adding ? (
           <p className="text-muted-foreground px-2 py-1 text-sm">No sections yet.</p>
         ) : (

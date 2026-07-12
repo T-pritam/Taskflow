@@ -4,6 +4,7 @@ import { KanbanSquare, List, Plus } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { useLabels } from "@/hooks/useLabels";
 import { useMembers } from "@/hooks/useMembers";
+import { byPriority } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -51,11 +52,13 @@ export default function BoardPage() {
 
   const visibleTasks = useMemo(
     () =>
-      tasks.filter((task) => {
-        if (sectionFilter !== ALL && task.section_id !== sectionFilter) return false;
-        if (assigneeFilter !== ALL && task.assignee_id !== assigneeFilter) return false;
-        return true;
-      }),
+      tasks
+        .filter((task) => {
+          if (sectionFilter !== ALL && task.section_id !== sectionFilter) return false;
+          if (assigneeFilter !== ALL && task.assignee_id !== assigneeFilter) return false;
+          return true;
+        })
+        .sort(byPriority),
     [tasks, sectionFilter, assigneeFilter]
   );
 

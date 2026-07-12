@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/authStore";
 import { useComments } from "@/hooks/useComments";
+import { useActivity } from "@/hooks/useActivity";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import CommentBox from "@/components/comments/CommentBox";
 import CommentList from "@/components/comments/CommentList";
+import ActivityFeed from "@/components/activity/ActivityFeed";
 import TaskForm from "./TaskForm";
 
 const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
@@ -32,8 +34,15 @@ export default function TaskModal({
   const { profile, isAdmin, user } = useAuth();
   const isEdit = Boolean(task);
   const { comments, loading: commentsLoading, addComment } = useComments(task?.id);
+  const { activity, loading: activityLoading, reload: reloadActivity } = useActivity(task?.id);
 
   const canDelete = isEdit && (isAdmin || task.created_by === profile?.id);
+
+  async function handleAddComment(body, mentionedUserIds) {
+    const result = await addComment(body, mentionedUserIds);
+    reloadActivity();
+    return result;
+  }
 
   async function handleSubmit(fields, labelIds) {
     if (isEdit) {
@@ -122,7 +131,19 @@ export default function TaskModal({
             <div className="flex flex-col gap-4 border-t pt-4">
               <h3 className="text-sm font-medium">Comments</h3>
               <CommentList comments={comments} loading={commentsLoading} />
-              <CommentBox members={members} onSubmit={addComment} />
+              <CommentBox members={members} onSubmit={handleAddComment} />
+            </div>
+          )}
+
+          {isEdit && (
+            <div className="flex flex-col gap-4 border-t pt-4">
+              <h3 className="text-sm font-medium">Activity</h3>
+              <ActivityFeed
+                activity={activity}
+                loading={activityLoading}
+                members={members}
+                sections={sections}
+              />
             </div>
           )}
         </div>
