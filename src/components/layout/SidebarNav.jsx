@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { KanbanSquare, Loader2, Plus } from "lucide-react";
+import { KanbanSquare, Loader2, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,10 @@ export default function SidebarNav({ sections, createSection, onNavigate }) {
         <NavLink to="/" active={onBoard && !activeSection} onNavigate={onNavigate}>
           <KanbanSquare className="size-4" />
           Board
+        </NavLink>
+        <NavLink to="/team" active={location.pathname === "/team"} onNavigate={onNavigate}>
+          <Users className="size-4" />
+          Team
         </NavLink>
       </div>
 

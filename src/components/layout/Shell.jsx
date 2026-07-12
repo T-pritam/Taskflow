@@ -24,6 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import SidebarNav from "./SidebarNav";
 
 export default function Shell() {
@@ -56,6 +57,8 @@ export default function Shell() {
         <span className="font-semibold">Taskflow</span>
 
         <div className="ml-auto flex items-center gap-1">
+          <NotificationBell />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full" aria-label="Account">

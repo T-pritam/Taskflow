@@ -1,6 +1,9 @@
+import { Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/authStore";
 import { useComments } from "@/hooks/useComments";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +14,8 @@ import {
 import CommentBox from "@/components/comments/CommentBox";
 import CommentList from "@/components/comments/CommentList";
 import TaskForm from "./TaskForm";
+
+const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
 
 export default function TaskModal({
   open,
@@ -24,7 +29,7 @@ export default function TaskModal({
   updateTask,
   deleteTask,
 }) {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, user } = useAuth();
   const isEdit = Boolean(task);
   const { comments, loading: commentsLoading, addComment } = useComments(task?.id);
 
@@ -51,11 +56,48 @@ export default function TaskModal({
     }
   }
 
+  async function handleShare() {
+    try {
+      const { data: existing, error: readError } = await supabase
+        .from("task_shares")
+        .select("token")
+        .eq("task_id", task.id)
+        .limit(1)
+        .maybeSingle();
+      if (readError) throw readError;
+
+      let token = existing?.token;
+      if (!token) {
+        const { data, error } = await supabase
+          .from("task_shares")
+          .insert({ task_id: task.id, created_by: user.id })
+          .select("token")
+          .single();
+        if (error) throw error;
+        token = data.token;
+      }
+
+      const url = `${APP_URL}/share/${token}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Share link copied to clipboard");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92svh] gap-0 overflow-y-auto sm:max-w-2xl">
         <DialogHeader className="pr-10">
-          <DialogTitle>{isEdit ? "Task details" : "New task"}</DialogTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <DialogTitle>{isEdit ? "Task details" : "New task"}</DialogTitle>
+            {isEdit && (
+              <Button type="button" variant="outline" size="sm" onClick={handleShare}>
+                <Link2 className="size-4" />
+                Share
+              </Button>
+            )}
+          </div>
           <DialogDescription>
             {isEdit
               ? "Update the task, or leave a comment for the people following it."

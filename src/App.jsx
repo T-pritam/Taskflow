@@ -8,7 +8,9 @@ import SignupPage from "@/components/auth/SignupPage";
 import ForgotPasswordPage from "@/components/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/components/auth/ResetPasswordPage";
 import NoAccessPage from "@/components/auth/NoAccessPage";
+import SharePage from "@/components/share/SharePage";
 import BoardPage from "@/pages/BoardPage";
+import TeamPage from "@/pages/TeamPage";
 
 export default function App() {
   useEffect(() => {
@@ -23,6 +25,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/no-access" element={<NoAccessPage />} />
+        <Route path="/share/:token" element={<SharePage />} />
 
         <Route
           element={
@@ -32,6 +35,7 @@ export default function App() {
           }
         >
           <Route path="/" element={<BoardPage />} />
+          <Route path="/team" element={<TeamPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
