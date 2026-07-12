@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import Shell from "@/components/layout/Shell";
@@ -37,6 +37,8 @@ export default function App() {
           <Route path="/" element={<BoardPage />} />
           <Route path="/team" element={<TeamPage />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
